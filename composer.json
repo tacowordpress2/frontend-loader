@@ -1,5 +1,5 @@
 {
-  "name": "jasandpereza/frontend-loader",
+  "name": "frontend-loader",
   "type": "library",
   "description": "Load files from a directory like vendor (Composer) that may be inaccessible by the browser",
   "license": "MIT",
