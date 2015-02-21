@@ -1,0 +1,17 @@
+{
+  "name": "jasandpereza/frontend-loader",
+  "type": "library",
+  "description": "Load files from a directory like vendor (Composer) that may be inaccessible by the browser",
+  "license": "MIT",
+  "minimum-stability": "dev",
+  "keywords": ["wordpress", "frontend", "composer", "proxy"],
+  "version": "1.0.0",
+  "require": {
+    "php": ">=5.2.7"
+  },
+  "autoload": {
+    "psr-4": {
+      "FrontendLoader\\": "src/"
+    }
+  }
+}
