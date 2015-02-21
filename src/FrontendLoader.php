@@ -1,5 +1,5 @@
 <?php
-namespace JasandPereza\FrontendLoader;
+namespace FrontendLoader;
 
 
 /**
