@@ -8,31 +8,66 @@ namespace FrontendLoader;
 class FrontendLoader
 {
 
-    public $path_prefix = null;
-    public $whitelisted_script_names = null;
+    private $path_prefix = null;
+    private $actual_path = null;
+    private $whitelisted_files = null;
 
 
-    public function __construct($path_prefix, $whitelisted_script_names)
+    public function __construct($path_prefix, $actual_path, $whitelisted_files=null)
     {
+        $this->setPathPrefix($path_prefix);
+        $this->setActualPath($actual_path);
+        $this->setWhiteListedFiles($whitelisted_files);
+    }
+
+
+    /**
+     * Set the path prefix
+     * @param string $path_prefix
+     */
+    public function setPathPrefix($path_prefix) {
         if (strlen($path_prefix)) {
             $this->path_prefix = $path_prefix;
         }
-        if (is_array($whitelisted_script_names &&
-            count($whitelisted_script_names)) > 0) {
-            $this->whitelisted_script_names = $whitelisted_script_names;
+    }
+
+
+    /**
+     * Set the the actual path of the plugin
+     * @param string $actual_path
+     */
+    public function setActualPath($actual_path) {
+        if (strlen($actual_path)) {
+            $this->actual_path = $actual_path;
         }
     }
 
+
     /**
-     * Is the user currently viewing an HTML page?
-     * Things that are not HTML would be admin-ajax.php for instance
+     * Set which files are whitelisted
+     * @param array $whitelisted_files
+     */
+    public function setWhiteListedFiles($whitelisted_files=null) {
+        if (is_array($whitelisted_files)) {
+            $this->whitelisted_files = $whitelisted_files;
+        }
+    }
+
+
+    /**
+     * Should the file be loaded?
+     * If the variable $whitelisted_files in this class are null,
+     * everything in the assets folder will be whitelisted
+     * Otherwise, only the array of files will be loadable
+     * @param string $file_name
      * @return bool
      */
-    public function shouldLoadFile($script_name)
+    public function shouldLoadFile($file_name)
     {
-        $whitelisted_script_names = $this->whitelisted_script_names;
-        if (!(in_array($script_name, $whitelisted_script_names) ||
-                array_key_exists($script_name, $whitelisted_script_names))) {
+        $whitelisted_files = $this->whitelisted_files;
+        if ($whitelisted_files === null) return true;
+        if (!(in_array($file_name, $whitelisted_files) ||
+                array_key_exists($file_name, $whitelisted_files))) {
             return false;
         }
         return true;
@@ -40,11 +75,11 @@ class FrontendLoader
 
 
     /**
-     * Get an array of namespaces this file resides in
+     * Get an array of namespaces the parameter (namespace) resides in
      * @return array
      */
-    public static function getNameSpaceArray() {
-        return array_reverse(explode('\\', __NAMESPACE__));
+    public static function getNameSpaceArray($namespace) {
+        return array_reverse(explode('\\', $namespace));
     }
 
 
@@ -112,14 +147,14 @@ class FrontendLoader
      * Determine the path for an asset using the query string
      * @return string bool
      */
-    public static function getAssetPath() {
+    public function getAssetPath() {
         $url_frags = parse_url($_SERVER['REQUEST_URI']);
         if (!array_key_exists('query', $url_frags)) return false;
         parse_str($url_frags['query'], $query_vars);
         if (!array_key_exists('asset', $query_vars)) return false;
         $folder_name = self::getAssetFolderName($query_vars['asset']);
         $file_name = sprintf(
-            dirname(__FILE__).'/assets/%s/%s',
+            $this->actual_path.'/assets/%s/%s',
             $folder_name,
             $query_vars['asset']
         );
@@ -144,12 +179,12 @@ class FrontendLoader
 
 
     /**
-     * get the prefix to be used in the path for a file
+     * Get the prefix to be used in the path for a file
      * @return string
      */
     public function getPathPrefix() {
         $path_prefix = $this->path_prefix;
-        return preg_quote($path_prefix);
+        return preg_quote($path_prefix, '/');
     }
 
 
@@ -158,27 +193,27 @@ class FrontendLoader
      * @param array $query - wordpress passes this in and must be returned
      * @return file
      */
-    public static function fileServe($query)
+    public function fileServe($query)
     {
-     if (!array_key_exists('REQUEST_URI', $_SERVER)) return $query;
-     $folder_plugin_namespace = self::machine(next(self::getNameSpaceArray()));
-     $path_prefix = $this->getPathPrefix();
+        if (!array_key_exists('REQUEST_URI', $_SERVER)) return $query;
+        $path_prefix = $this->getPathPrefix();
 
-     if (!preg_match("/$path_prefix/assets\/(.*)$/",
+        if (!preg_match("/$path_prefix\/assets\/(.*)$/i",
          $_SERVER['REQUEST_URI'])) return $query;
+            
 
-     $file_path = self::getAssetPath();
-     if (!$file_path) return $query;
+        $file_path = self::getAssetPath();
+        if (!$file_path) return $query;
+        
+        // check if this file is whitelisted
+        if (!$this->shouldLoadFile($this->getAssetFileName())) return $query;
 
-     // check if this file is whitelisted
-     if (!$this->shouldLoadFile($file_path)) return $query;
-
-     $content_type = self::getContentType($file_path);
-     header('Content-type: ' . $content_type);
-     header('Content-Length: ' . filesize($file_path));
-     http_response_code(200);
-     readfile($file_path);
-     exit;
-     return $query;
+        $content_type = self::getContentType($file_path);
+        header('Content-type: ' . $content_type);
+        header('Content-Length: ' . filesize($file_path));
+        http_response_code(200);
+        readfile($file_path);
+        exit;
+        return $query;
     }
 }
