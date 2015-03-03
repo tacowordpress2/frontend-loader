@@ -190,7 +190,7 @@ class FrontendLoader
 
     /**
      * Return a file given the query string
-     * @param array $query - wordpress passes this in and must be returned
+     * @param array $query - wordpress passes this in and it must be returned
      * @return file
      */
     public function fileServe($query)
