@@ -88,7 +88,7 @@ class FrontendLoader
      * @param string $str
      * @param string $separator
      * @return string
-     * @todo Tring to figure out whether or not this should come from a dependency
+     * @todo figure out whether or not this should come from a dependency
      */
     public static function machine($str, $separator = '_')
     {
