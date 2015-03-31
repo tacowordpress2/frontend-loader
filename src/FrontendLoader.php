@@ -25,7 +25,8 @@ class FrontendLoader
      * Set the path prefix
      * @param string $path_prefix
      */
-    public function setPathPrefix($path_prefix) {
+    public function setPathPrefix($path_prefix) 
+    {
         if (strlen($path_prefix)) {
             $this->path_prefix = $path_prefix;
         }
@@ -36,7 +37,8 @@ class FrontendLoader
      * Set the the actual path of the plugin
      * @param string $actual_path
      */
-    public function setActualPath($actual_path) {
+    public function setActualPath($actual_path) 
+    {
         if (strlen($actual_path)) {
             $this->actual_path = $actual_path;
         }
@@ -47,7 +49,8 @@ class FrontendLoader
      * Set which files are whitelisted
      * @param array $whitelisted_files
      */
-    public function setWhiteListedFiles($whitelisted_files=null) {
+    public function setWhiteListedFiles($whitelisted_files=null) 
+    {
         if (is_array($whitelisted_files)) {
             $this->whitelisted_files = $whitelisted_files;
         }
@@ -78,7 +81,8 @@ class FrontendLoader
      * Get an array of namespaces the parameter (namespace) resides in
      * @return array
      */
-    public static function getNameSpaceArray($namespace) {
+    public static function getNameSpaceArray($namespace) 
+    {
         return array_reverse(explode('\\', $namespace));
     }
 
@@ -147,7 +151,8 @@ class FrontendLoader
      * Determine the path for an asset using the query string
      * @return string bool
      */
-    public function getAssetPath() {
+    public function getAssetPath() 
+    {
         $url_frags = parse_url($_SERVER['REQUEST_URI']);
         if (!array_key_exists('query', $url_frags)) return false;
         parse_str($url_frags['query'], $query_vars);
@@ -169,7 +174,8 @@ class FrontendLoader
      * Get the file from a the query string
      * @return string bool
      */
-    public static function getAssetFileName() {
+    public static function getAssetFileName() 
+    {
         $url_frags = parse_url($_SERVER['REQUEST_URI']);
         if (!array_key_exists('query', $url_frags)) return false;
         parse_str($url_frags['query'], $query_vars);
@@ -182,7 +188,8 @@ class FrontendLoader
      * Get the prefix to be used in the path for a file
      * @return string
      */
-    public function getPathPrefix() {
+    public function getPathPrefix() 
+    {
         $path_prefix = $this->path_prefix;
         return preg_quote($path_prefix, '/');
     }
