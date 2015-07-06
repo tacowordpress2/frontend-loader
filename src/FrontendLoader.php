@@ -118,7 +118,7 @@ class FrontendLoader
             case "png": return "image/png";
             case "jpeg":
             case "jpg": return "image/jpg";
-            case "ico": return "image/ico";
+            case "ico": return "image/x-icon";
             case "css": return "text/css";
             case "js":  return "application/javascript";
             default:
