@@ -205,7 +205,7 @@ class FrontendLoader
      * @param array $query - wordpress passes this in and it must be returned
      * @return file
      */
-    public function fileServe($query)
+    public function fileServe($query, $callback=null)
     {
         if (!array_key_exists('REQUEST_URI', $_SERVER)) return $query;
         $path_prefix = $this->getPathPrefix();
@@ -225,6 +225,9 @@ class FrontendLoader
         header('Content-Length: ' . filesize($file_path));
         http_response_code(200);
         readfile($file_path);
+        if ($callback) {
+            $callback();
+        }
         exit;
         return $query;
     }
