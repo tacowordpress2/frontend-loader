@@ -118,9 +118,9 @@ class FrontendLoader
             case "png": return "image/png";
             case "jpeg":
             case "jpg": return "image/jpg";
-            case "ico": return "image/x-icon";
             case "css": return "text/css";
             case "js":  return "application/javascript";
+            case "pdf": return "application/pdf";
             default:
         }
         return false;
@@ -144,6 +144,9 @@ class FrontendLoader
         if ($file_extension === 'css') {
             return 'css';
         }
+        if ($file_extension === 'pdf') {
+            return 'pdf';
+        }
         return false;
     }
 
@@ -164,6 +167,7 @@ class FrontendLoader
             $folder_name,
             $query_vars['asset']
         );
+        
         if (file_exists($file_name)) {
            return $file_name;
         }
@@ -209,8 +213,8 @@ class FrontendLoader
         if (!preg_match("/$path_prefix\/assets\/(.*)$/i",
          $_SERVER['REQUEST_URI'])) return $query;
             
-
         $file_path = self::getAssetPath();
+
         if (!$file_path) return $query;
         
         // check if this file is whitelisted
