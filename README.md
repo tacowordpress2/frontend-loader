@@ -1,5 +1,4 @@
 # frontend-loader (proxy)
-Load files from a directory like vendor (Composer) that may be inaccessible by the browser.
-This is meant to be used with Wordpress because of the vendor directory being outside the Wordpress root folder.
+Load files from a directory outside of root that are inaccessible by the browser.
 
 
