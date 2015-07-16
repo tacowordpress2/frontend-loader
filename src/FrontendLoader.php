@@ -3,32 +3,49 @@ namespace FrontendLoader;
 
 
 /**
- * Loads frontend code like HTML, CSS, and JS
+ * Loads frontend code like HTML, CSS, and JS from inaccessible places
  */
 class FrontendLoader
 {
 
-    private $path_prefix = null;
+    private $new_path = null;
     private $actual_path = null;
-    private $whitelisted_files = null;
+    private $black_listed_files = null;
+    private $common_path_prefix = 'assets';
 
-
-    public function __construct($path_prefix, $actual_path, $whitelisted_files=null)
-    {
-        $this->setPathPrefix($path_prefix);
+    public function __construct(
+        $actual_path,
+        $new_path,
+        $common_path_prefix = null,
+        $black_listed_files = null
+    ) {
+        $this->setNewPath($new_path);
         $this->setActualPath($actual_path);
-        $this->setWhiteListedFiles($whitelisted_files);
+        $this->setCommonPathPrefix($common_path_prefix);
+        $this->setBlackListedFiles($black_listed_files);
     }
 
 
     /**
-     * Set the path prefix
-     * @param string $path_prefix
+     * Set the new path
+     * @param string $new_path
      */
-    public function setPathPrefix($path_prefix)
+    public function setNewPath($new_path)
     {
-        if (strlen($path_prefix)) {
-            $this->path_prefix = $path_prefix;
+        if (strlen($new_path)) {
+            $this->new_path = $new_path;
+        }
+    }
+
+
+    /**
+     * Set the common path prefix
+     * @param string $common_path_prefix
+     */
+    public function setCommonPathPrefix($common_path_prefix)
+    {
+        if (strlen($common_path_prefix)) {
+            $this->common_path_prefix = $common_path_prefix;
         }
     }
 
@@ -46,44 +63,33 @@ class FrontendLoader
 
 
     /**
-     * Set which files are whitelisted
-     * @param array $whitelisted_files
+     * Set which dirs are blacklisted
+     * @param array $black_listed_files
      */
-    public function setWhiteListedFiles($whitelisted_files=null)
+    public function setBlackListedFiles($black_listed_files=null)
     {
-        if (is_array($whitelisted_files)) {
-            $this->whitelisted_files = $whitelisted_files;
+        if (!(is_array($black_listed_files) && count($black_listed_files) > 0)) {
+            return;
         }
+        $this->black_listed_files = $black_listed_files;
     }
 
 
     /**
      * Should the file be loaded?
-     * If the variable $whitelisted_files in this class are null,
-     * everything in the assets folder will be whitelisted
-     * Otherwise, only the array of files will be loadable
      * @param string $file_name
      * @return bool
      */
     public function shouldLoadFile($file_name)
     {
-        $whitelisted_files = $this->whitelisted_files;
-        if ($whitelisted_files === null) return true;
-        if (!(in_array($file_name, $whitelisted_files) ||
-                array_key_exists($file_name, $whitelisted_files))) {
+        $black_listed_files = $this->black_listed_files;
+        if ($black_listed_files === null) {
+            return true;
+        }
+        if (in_array($file_name, $black_listed_files)) {
             return false;
         }
         return true;
-    }
-
-
-    /**
-     * Get an array of namespaces the parameter (namespace) resides in
-     * @return array
-     */
-    public static function getNameSpaceArray($namespace)
-    {
-        return array_reverse(explode('\\', $namespace));
     }
 
 
@@ -112,7 +118,7 @@ class FrontendLoader
      */
     public static function getContentType($file_name)
     {
-        $file_extension = strtolower(substr(strrchr($file_name,"."), 1));
+        $file_extension = strtolower(substr(strrchr($file_name, '.'), 1));
         switch($file_extension) {
             case "gif": return "image/gif";
             case "png": return "image/png";
@@ -128,50 +134,45 @@ class FrontendLoader
 
 
     /**
-     * Return the folder name for a given file
-     * @param string $file_name
-     * @return string bool
-     */
-    public static function getAssetFolderName($file_name)
-    {
-        $file_extension = strtolower(substr(strrchr($file_name,"."), 1));
-        if (preg_match('/jpg|jpeg|gif|png|ico/', $file_extension)) {
-            return 'img';
-        }
-        if ($file_extension === 'js') {
-            return 'js';
-        }
-        if ($file_extension === 'css') {
-            return 'css';
-        }
-        if ($file_extension === 'pdf') {
-            return 'pdf';
-        }
-        return false;
-    }
-
-
-    /**
      * Determine the path for an asset using the query string
      * @return string bool
      */
     public function getAssetPath()
     {
         $url_frags = parse_url($_SERVER['REQUEST_URI']);
-        if (!array_key_exists('query', $url_frags)) return false;
-        parse_str($url_frags['query'], $query_vars);
-        if (!array_key_exists('asset', $query_vars)) return false;
-        $folder_name = self::getAssetFolderName($query_vars['asset']);
-        $file_name = sprintf(
-            $this->actual_path.'/assets/%s/%s',
-            $folder_name,
-            $query_vars['asset']
-        );
         
-        if (file_exists($file_name)) {
-           return $file_name;
+        if (!array_key_exists('path', $url_frags)) {
+            return false;
         }
-        return $false;
+
+        $file_name = basename($url_frags['path']);
+        
+        if (!preg_match('/^(.+)\.([a-z]+)$/', $file_name)) {
+            return false;
+        }
+
+        // this is the path after the common path prefix
+        $path_everything_after = substr(
+            $url_frags['path'],
+            strpos($url_frags['path'], $this->common_path_prefix)
+        );
+
+        $file_name = $this->actual_path.'/'.$path_everything_after.$query_vars['asset'];
+        if (file_exists($file_name)) {
+            return $file_name;
+        }
+        return false;
+    }
+
+
+    /**
+     * Get the prefix to be used in the path for a file
+     * @return string
+     */
+    public function getNewPath()
+    {
+        $new_path = $this->new_path;
+        return preg_quote($new_path, '/');
     }
 
 
@@ -181,22 +182,7 @@ class FrontendLoader
      */
     public static function getAssetFileName()
     {
-        $url_frags = parse_url($_SERVER['REQUEST_URI']);
-        if (!array_key_exists('query', $url_frags)) return false;
-        parse_str($url_frags['query'], $query_vars);
-        if (!array_key_exists('asset', $query_vars)) return false;
-        return $query_vars['asset'];
-    }
-
-
-    /**
-     * Get the prefix to be used in the path for a file
-     * @return string
-     */
-    public function getPathPrefix()
-    {
-        $path_prefix = $this->path_prefix;
-        return preg_quote($path_prefix, '/');
+        return preg_replace('/\?.*/', '', basename($_SERVER['REQUEST_URI']));
     }
 
 
@@ -207,18 +193,23 @@ class FrontendLoader
      */
     public function fileServe($query, $callback=null)
     {
-        if (!array_key_exists('REQUEST_URI', $_SERVER)) return $query;
-        $path_prefix = $this->getPathPrefix();
+        if (!array_key_exists('REQUEST_URI', $_SERVER)) {
+            return $query;
+        }
+        $new_path = $this->getNewPath();
+        
+        if (!$this->shouldLoadFile($this->getAssetFileName())) {
+            return $query;
+        }
+        if (!preg_match("/$new_path\/(.*)$/i", $_SERVER['REQUEST_URI'])) {
+            return $query;
+        }
 
-        if (!preg_match("/$path_prefix\/assets\/(.*)$/i",
-         $_SERVER['REQUEST_URI'])) return $query;
-            
         $file_path = self::getAssetPath();
 
-        if (!$file_path) return $query;
-        
-        // check if this file is whitelisted
-        if (!$this->shouldLoadFile($this->getAssetFileName())) return $query;
+        if (!$file_path) {
+            return $query;
+        }
 
         $content_type = self::getContentType($file_path);
         header('Content-type: ' . $content_type);
