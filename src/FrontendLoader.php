@@ -157,7 +157,7 @@ class FrontendLoader
             strpos($url_frags['path'], $this->common_path_prefix)
         );
 
-        $file_name = $this->actual_path.'/'.$path_everything_after.$query_vars['asset'];
+        $file_name = $this->actual_path.'/'.$path_everything_after;
         if (file_exists($file_name)) {
             return $file_name;
         }
