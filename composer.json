@@ -1,11 +1,11 @@
 {
-  "name": "jasand-pereza/frontend-loader",
+  "name": "tacowordpress2/frontend-loader",
   "type": "library",
   "description": "Load files from a directory like vendor (Composer) that may be inaccessible by the browser",
   "license": "MIT",
   "minimum-stability": "dev",
   "keywords": ["wordpress", "frontend", "composer", "proxy"],
-  "version": "0.0.6",
+  "version": "1.0",
   "require": {
     "php": ">=5.2.7"
   },
