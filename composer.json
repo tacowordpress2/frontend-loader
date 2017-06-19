@@ -5,7 +5,6 @@
   "license": "MIT",
   "minimum-stability": "dev",
   "keywords": ["wordpress", "frontend", "composer", "proxy"],
-  "version": "1.0",
   "require": {
     "php": ">=5.2.7"
   },
